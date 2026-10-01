@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Music Maker ZW</title>
+<style>
+body{background:#0a0a0a;color:#fff;font-family:Arial;text-align:center;padding:20px}
+h1{color:#1DB954}
+button{padding:18px 30px;font-size:18px;border-radius:50px;border:none;margin:10px;font-weight:bold}
+#record{background:#ff0055;color:#fff}
+#generate{background:#1DB954;color:#fff}
+select{padding:12px;border-radius:10px;font-size:16px;width:85%}
+.card{background:#1a1a1a;padding:20px;border-radius:15px;margin-top:20px}
+#status{color:#aaa;margin:15px}
+audio{width:90%;margin-top:15px}
+</style>
+</head>
+<body>
+<h1>🎤 Music Maker ZW 🔥</h1>
+<div class="card">
+<select id="genre">
+<option>Zimdancehall</option>
+<option>Afrobeats</option>
+<option>Sungura</option>
+<option>Amapiano</option>
+<option>Zim Hip Hop</option>
+</select><br><br>
+<button id="record">● REC - IMBA</button>
+<button id="generate">⚡ GADZIRA BEAT</button>
+<p id="status">Sarudza genre, wodzvanya REC uimbe!</p>
+<audio id="player" controls></audio>
+<p id="result"></p>
+</div>
+<script>
+const SERVER="https://music-maker-server-7kn0.onrender.com";
+let mr, blob, chunks=[];
+const recBtn=document.getElementById('record'), st=document.getElementById('status'), res=document.getElementById('result');
+recBtn.onclick=async()=>{
+ if(mr && mr.state=="recording"){mr.stop();recBtn.textContent="● REC - IMBA";st.textContent="✅ Zvakanaka! Dzvanya GADZIRA BEAT";return;}
+ const s=await navigator.mediaDevices.getUserMedia({audio:true});
+ mr=new MediaRecorder(s);chunks=[];mr.ondataavailable=e=>chunks.push(e.data);
+ mr.onstop=()=>{blob=new Blob(chunks,{type:'audio/webm'});document.getElementById('player').src=URL.createObjectURL(blob);};
+ mr.start();recBtn.textContent="■ STOP";st.textContent="🔴 Kurekodha... Imba izvozvi!";
+};
+document.getElementById('generate').onclick=async()=>{
+ if(!blob){alert("Tanga warekodha!");return;}
+ st.textContent="⏳ Kugadzira beat..."; 
+ const fd=new FormData();fd.append('voice',blob,'voice.webm');fd.append('genre',document.getElementById('genre').value);
+ try{
+  const r=await fetch(SERVER+'/make-song',{method:'POST',body:fd});
+  const d=await r.json();
+  st.textContent="🔥 BEAT YAGADZIRWA!";res.innerHTML="<b>"+d.message+"</b><br><br>"+d.lyrics;
+ }catch(e){st.textContent="Error: "+e.message}
+};
+</script>
+</body>
+</html>
